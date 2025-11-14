@@ -49,14 +49,14 @@ Users don't know if the program is working or stuck.
 
 | Task # | Description | Assignment | Solution |
 |--------|-------------|------------|----------|
-| 1 | Create centralized `dl_and_save()` function | [Name] | Extracted common logic into single function with parameters for output directory |
-| 2 | Add comprehensive error handling | [Name] | Wrapped Wikipedia API calls in try-except blocks catching DisambiguationError, PageError, and general exceptions |
-| 3 | Implement user input functionality | [Name] | Created `get_search_term()` function with validation (4 char minimum) and default fallback |
-| 4 | Create output directory management | [Name] | Added `setup_output_directory()` function using pathlib to create "wiki_dl" directory |
-| 5 | Refactor sequential implementation | [Name] | Updated to use centralized function and added statistics tracking |
-| 6 | Refactor thread pool implementation | [Name] | Updated to use centralized function with proper argument passing |
-| 7 | Refactor process pool implementation | [Name] | Created `dl_and_save_process()` wrapper at module level for pickling compatibility |
-| 8 | Add performance tracking & summary | [Name] | Implemented statistics collection and `print_performance_summary()` function |
+| 1 | Create centralized `dl_and_save()` function | Shawn| Extracted common logic into single function with parameters for output directory |
+| 2 | Add comprehensive error handling | MD shah Alam| Wrapped Wikipedia API calls in try-except blocks catching DisambiguationError, PageError, and general exceptions |
+| 3 | Implement user input functionality | Sameer | Created `get_search_term()` function with validation (4 char minimum) and default fallback |
+| 4 | Create output directory management | Cesar | Added `setup_output_directory()` function using pathlib to create "wiki_dl" directory |
+| 5 | Refactor sequential implementation | Ucheoma| Updated to use centralized function and added statistics tracking |
+| 6 | Refactor thread pool implementation | Shawn | Updated to use centralized function with proper argument passing |
+| 7 | Refactor process pool implementation | MD Shah | Created `dl_and_save_process()` wrapper at module level for pickling compatibility |
+| 8 | Add performance tracking & summary | Sameer| Implemented statistics collection and `print_performance_summary()` function |
 
 ---
 
