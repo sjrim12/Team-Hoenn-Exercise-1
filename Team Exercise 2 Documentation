@@ -1,0 +1,243 @@
+Working Space / Notes
+# Team Exercise #2 - Code Review Documentation
+
+## Team Members
+
+---
+
+## Issues Identified
+
+- Issue 1: Code Duplication
+The download and save logic was repeated three times (in `wiki_sequentially`, `concurrent_threads`, and as a nested function in each). This violates the DRY (Don't Repeat Yourself) principle and makes maintenance difficult.
+
+The problem would be any bug fix or enhancement would need to be applied in three places, increasing the chance of inconsistencies.
+
+- Issue 2: Hardcoded Search Term
+The search term "general artificial intelligence" was hardcoded in all three implementation functions.
+
+The issue is that users couldn't customize searches without modifying the source code.
+
+- Issue 3: No Output Directory Management
+Files were saved directly in the current working directory with no organization or directory creation logic.
+
+The output files could clutter the project directory and potentially overwrite important files.
+
+- Issue 4: No Error Handling
+The code had no try-except blocks to handle Wikipedia API errors such as:
+  1. DisambiguationError (when search term is ambiguous)
+  2. PageError (when page doesn't exist)
+  3. Network connectivity issues
+
+Any single error could crash the entire program, losing all progress.
+
+- Issue 5: No User Input Functionality
+No mechanism for users to input their own search terms.
+
+The problem here is that it would require code modification for every different search, making the tool inflexible.
+
+- Issue 6: Inefficient String Conversion
+The `convert_to_str` function used basic type checking and didn't handle edge cases or use best practices.
+
+Could fail on unexpected data types.
+
+- Issue 7: No Progress Feedback
+Limited feedback during execution about what's happening.
+
+Users don't know if the program is working or stuck.
+
+## Tasks Breakdown
+
+| Task # | Description | Assignment | Solution |
+|--------|-------------|------------|----------|
+| 1 | Create centralized `dl_and_save()` function | [Name] | Extracted common logic into single function with parameters for output directory |
+| 2 | Add comprehensive error handling | [Name] | Wrapped Wikipedia API calls in try-except blocks catching DisambiguationError, PageError, and general exceptions |
+| 3 | Implement user input functionality | [Name] | Created `get_search_term()` function with validation (4 char minimum) and default fallback |
+| 4 | Create output directory management | [Name] | Added `setup_output_directory()` function using pathlib to create "wiki_dl" directory |
+| 5 | Refactor sequential implementation | [Name] | Updated to use centralized function and added statistics tracking |
+| 6 | Refactor thread pool implementation | [Name] | Updated to use centralized function with proper argument passing |
+| 7 | Refactor process pool implementation | [Name] | Created `dl_and_save_process()` wrapper at module level for pickling compatibility |
+| 8 | Add performance tracking & summary | [Name] | Implemented statistics collection and `print_performance_summary()` function |
+
+---
+
+## Solutions Implemented
+
+### Solution 1: Code Consolidation (Issue 1)
+**Implementation:**
+- Created a single `dl_and_save(item, output_dir)` function
+- All three execution methods now call this centralized function
+- Eliminated ~40 lines of duplicate code
+
+**Benefits:**
+- Single source of truth for download logic
+- Easier maintenance and debugging
+- Consistent behavior across all execution methods
+
+### Solution 2: User Input System (Issues 2, 5)
+**Implementation:**
+```python
+def get_search_term():
+    user_input = input("Enter a Wikipedia search term: ").strip()
+    if len(user_input) < MIN_SEARCH_LENGTH:
+        return DEFAULT_SEARCH_TERM
+    return user_input
+```
+
+**Benefits:**
+- Users can specify custom search terms
+- Validates input length (min 4 characters)
+- Automatically defaults to "generative artificial intelligence" for short inputs
+- Makes tool flexible and reusable
+
+### Solution 3: Directory Management (Issue 3)
+**Implementation:**
+```python
+def setup_output_directory():
+    output_path = Path(OUTPUT_DIR)
+    output_path.mkdir(exist_ok=True)
+    return output_path
+```
+
+**Benefits:**
+- Creates "wiki_dl" directory automatically
+- Uses pathlib for cross-platform compatibility
+- Doesn't error if directory already exists
+- Keeps output files organized
+
+### Solution 4: Error Handling (Issue 4)
+**Implementation:**
+- Added try-except blocks in `dl_and_save()`
+- Catches specific Wikipedia exceptions:
+  - `DisambiguationError`: When search term matches multiple pages
+  - `PageError`: When page doesn't exist
+- Returns success/failure status for tracking
+- Continues processing even when individual pages fail
+
+**Benefits:**
+- Program doesn't crash on single failures
+- Provides informative error messages
+- Tracks success/failure rates
+- User knows exactly what went wrong
+
+### Solution 5: Improved String Conversion (Issue 6)
+**Implementation:**
+```python
+def convert_to_str(obj):
+    if isinstance(obj, list):
+        return '\n'.join(str(item) for item in obj)
+    elif isinstance(obj, (str, int, float)):
+        return str(obj)
+    else:
+        return str(obj)
+```
+
+**Benefits:**
+- Uses `isinstance()` for better type checking
+- Handles edge cases gracefully
+- Works with any object type
+
+### Solution 6: Enhanced Progress Feedback (Issue 7)
+**Implementation:**
+- Added visual indicators (✓ for success, ✗ for failure)
+- Shows count of results found
+- Displays success/failure statistics
+- Clear section headers for each execution method
+
+**Benefits:**
+- Users know program is working
+- Easy to identify which pages succeeded/failed
+- Professional appearance
+
+### Solution 7: Performance Analytics (Issue 8)
+**Implementation:**
+- Each method returns statistics dictionary
+- Created `print_performance_summary()` function
+- Displays timing comparisons and success rates
+
+**Benefits:**
+- Easy comparison of sequential vs. concurrent methods
+- Helps identify most efficient approach
+- Tracks success rates for quality assurance
+
+### Solution 8: Process Pool Compatibility
+**Implementation:**
+- Created `dl_and_save_process()` wrapper at module level
+- Passes arguments as tuple for pickling
+- Maintains same functionality as other methods
+
+**Benefits:**
+- Works with ProcessPoolExecutor's pickling requirements
+- Consistent with other implementations
+- No loss of functionality
+
+---
+
+## Additional Improvements
+
+### Configuration Management
+Added constants at module top for easy configuration:
+```python
+DEFAULT_SEARCH_TERM = "generative artificial intelligence"
+MIN_SEARCH_LENGTH = 4
+OUTPUT_DIR = "wiki_dl"
+```
+
+### Filename Sanitization
+Added character filtering to prevent filesystem errors:
+```python
+safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_'))
+```
+
+### UTF-8 Encoding
+Explicitly specified encoding when writing files to handle international characters.
+
+### Main Function
+Created `main()` function to orchestrate execution flow and improve code organization.
+
+---
+
+## Testing Recommendations
+
+1. **Test with various search terms:**
+   - Short terms (< 4 chars)
+   - Ambiguous terms (trigger DisambiguationError)
+   - Non-existent topics (trigger PageError)
+   - International characters
+
+2. **Test directory creation:**
+   - Run when "wiki_dl" doesn't exist
+   - Run when "wiki_dl" already exists
+   - Check file permissions
+
+3. **Test error handling:**
+   - Disconnect network mid-execution
+   - Use invalid Wikipedia terms
+   - Test with rate limiting
+
+4. **Performance testing:**
+   - Compare execution times across methods
+   - Test with different numbers of workers
+   - Measure CPU and memory usage
+
+---
+
+## Lessons Learned
+
+1. **DRY Principle:** Eliminating code duplication makes maintenance significantly easier
+2. **Error Handling:** Robust error handling prevents catastrophic failures
+3. **User Experience:** Input validation and progress feedback improve usability
+4. **Modularity:** Breaking code into focused functions improves testability
+5. **Documentation:** Clear variable names and comments make code self-documenting
+
+---
+
+## Future Enhancements
+
+1. Add command-line argument parsing (argparse)
+2. Implement retry logic for failed downloads
+3. Add logging to file for debugging
+4. Create unit tests with pytest
+5. Add progress bar (tqdm library)
+6. Support for downloading page content, not just references
+7. Implement caching to avoid re-downloading
+8. Add option to select specific execution method
